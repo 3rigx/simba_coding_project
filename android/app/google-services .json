@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "222902257333",
+    "project_id": "simba-d1344",
+    "storage_bucket": "simba-d1344.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:222902257333:android:f91dc0b3891d4a80d3a0fc",
+        "android_client_info": {
+          "package_name": "com.example.simba_coding_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "222902257333-mb8allcpm4rn82sh5pobsn6ffuc5ujn7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.simba_coding_project",
+            "certificate_hash": "e8bbfffc9984db7799957ad1dc7550693981cfa4"
+          }
+        },
+        {
+          "client_id": "222902257333-h77egv9gg5aiap9311jhesc4gouo6b2a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtm0u5MZoOFza9qIhdvMwc0OUsPNLRzZk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "222902257333-h77egv9gg5aiap9311jhesc4gouo6b2a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
