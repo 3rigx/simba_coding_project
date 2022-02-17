@@ -9,6 +9,8 @@ import 'package:simba_coding_project/widget/app_large_text.dart';
 import 'package:simba_coding_project/widget/app_text.dart';
 import 'package:simba_coding_project/widget/userName.dart';
 
+import '../../misc/utils.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -18,12 +20,11 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   var balance = {
-    'USD': '1000',
-    'NGN': '0.00',
-    'EU': '0.00',
+    'USD': '0',
+    'NGN': '0',
+    'EUR': '0',
   };
-  String status = 'credit';
-  String amount = '500';
+
   @override
   Widget build(BuildContext context) {
     Service _service = Provider.of<Service>(context, listen: false);
@@ -31,115 +32,165 @@ class _HomePageState extends State<HomePage> {
     UsersModel? user = _service.loggedInUser;
 
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.only(
-              top: 70,
-              left: 20,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.menu,
-                  size: 30,
-                  color: Colors.black,
-                ),
-                Expanded(child: Container()),
-                Container(
-                  margin: const EdgeInsets.only(
-                    right: 20,
-                  ),
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.grey.withOpacity(0.5),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 40,
-          ),
-          Container(
-            margin: const EdgeInsets.only(
-              left: 20,
-            ),
-            child: Row(
-              children: [
-                AppLargeText(
-                  text: 'Welcome',
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                UserName(),
-              ],
-            ),
-          ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.only(
+                top: 70,
+                left: 20,
+              ),
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () async {
+                      await _service.signOut();
 
-          SizedBox(
-            height: 30,
-          ),
-          //acccount balance
-          Container(
-            padding: const EdgeInsets.only(left: 20),
-            height: 300,
-            width: double.maxFinite,
-            child: ListView.builder(
-              itemCount: 3,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  margin: const EdgeInsets.only(right: 15, top: 10),
-                  width: 200,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.blue,
-                  ),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        AppText(
-                          text: balance.keys.elementAt(index),
-                          color: AppColors.textColor1,
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        AppText(
-                          text: balance.values.elementAt(index),
-                          color: AppColors.textColor1,
-                        ),
-                      ],
+                      Utils.mainAppNav.currentState!
+                          .pushReplacementNamed('/welcomepage');
+                    },
+                    child: Icon(
+                      Icons.exit_to_app,
+                      size: 30,
+                      color: Colors.black,
                     ),
                   ),
-                );
-              },
+                  Expanded(child: Container()),
+                  Container(
+                    margin: const EdgeInsets.only(
+                      right: 20,
+                    ),
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey.withOpacity(0.5),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+            SizedBox(
+              height: 40,
+            ),
+            Container(
+              margin: const EdgeInsets.only(
+                left: 20,
+              ),
+              child: Row(
+                children: [
+                  AppLargeText(
+                    text: 'Welcome',
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  UserName(),
+                ],
+              ),
+            ),
 
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-            margin: const EdgeInsets.all(20),
-            height: double.maxFinite,
-            width: double.maxFinite,
-            child: Column(
-              children: [
-                AppLargeText(
-                  text: 'Transactions',
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            SizedBox(
+              height: 30,
+            ),
+            //acccount balance
+            Container(
+              padding: const EdgeInsets.only(left: 20),
+              height: 100,
+              width: double.maxFinite,
+              /**/
+              child: StreamBuilder<DocumentSnapshot<dynamic>>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.userId)
+                      .snapshots(),
+                  builder: (BuildContext context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Something went Wrong, Check Data Connecton',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else {
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppText(
+                                text: 'No Transaction To Report',
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      var data = snapshot.data!;
+
+                      return ListView.builder(
+                        itemCount: 3,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Container(
+                            margin: const EdgeInsets.only(right: 15, top: 10),
+                            width: 100,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: AppColors.mainColor,
+                            ),
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 20,
+                                  ),
+                                  AppText(
+                                    text: balance.keys.elementAt(index),
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  AppText(
+                                    text: data[balance.keys.elementAt(index)]
+                                        .toString(),
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }
+                  }),
+            ),
+
+            SizedBox(
+              height: 20,
+            ),
+            Container(
+              margin: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  AppLargeText(
+                    text: 'Transactions',
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                       stream: FirebaseFirestore.instance
                           .collection("users")
                           .doc(user.userId)
@@ -169,7 +220,7 @@ class _HomePageState extends State<HomePage> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  AppLargeText(
+                                  AppText(
                                     text: 'No Transaction To Report',
                                   ),
                                 ],
@@ -210,7 +261,7 @@ class _HomePageState extends State<HomePage> {
                                   snapshot.data!.size,
                                   (index) => DataRow(cells: [
                                         DataCell(AppText(
-                                          text: '$index',
+                                          text: '${index + 1}',
                                         )),
                                         DataCell(AppText(
                                           text: '${data[index]['Sender']}',
@@ -220,20 +271,13 @@ class _HomePageState extends State<HomePage> {
                                         )),
                                         DataCell(
                                           AppText(
-                                            text: status == 'credit'
-                                                ? '+${data[index]['TargetCurency']} ${data[index]['Amount']}'
-                                                : '-${data[index]['SourceCurency']} ${data[index]['Amount']}',
-                                            color: data[index]['Status'] ==
-                                                    'credit'
-                                                ? Colors.lightGreen
-                                                : Colors.red,
+                                            text: ' ${data[index]['Amount']}',
+                                            color: Colors.lightGreen,
                                           ),
                                         ),
                                         DataCell(
                                           AppText(
-                                            text: status == 'credit'
-                                                ? '${data[index]['TargetCurency']} '
-                                                : '${data[index]['SourceCurency']}',
+                                            text: '${data[index]['Curency']} ',
                                           ),
                                         ),
                                         DataCell(
@@ -251,13 +295,13 @@ class _HomePageState extends State<HomePage> {
                                       ])));
                         }
                       }),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          //
-        ],
+            //
+          ],
+        ),
       ),
     );
   }

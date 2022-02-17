@@ -8,7 +8,7 @@ class Service {
   Service() {
     Firebase.initializeApp();
   }
-
+  bool googleUserLog = false;
   UsersModel? _usermodel;
 
   UsersModel get loggedInUser => _usermodel!;
@@ -35,7 +35,8 @@ class Service {
     //once signed in return the userCredential
     UserCredential userCreds =
         await FirebaseAuth.instance.signInWithCredential(credential);
-    if (userCreds != null) {
+    if (userCreds.user != null) {
+      googleUserLog = true;
       _usermodel = UsersModel(
           displayName: userCreds.user!.displayName,
           email: userCreds.user!.email,
@@ -54,7 +55,7 @@ class Service {
           addNewUser(userCreds.user!.uid, userCreds.user!.displayName,
               userCreds.user!.email);
           sendMoney('001', 'New User Funds', userCreds.user!.displayName,
-              userCreds.user!.uid, 'USD', 'USD', 0.00, 1000, 0.00);
+              userCreds.user!.uid, 'USD', 'USD', 1000, 1000, 0.00);
         }
       });
     }
@@ -65,22 +66,21 @@ class Service {
     try {
       UserCredential userCreds = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-      if (userCreds != null) {
-        _usermodel = UsersModel(
-            displayName: userCreds.user!.displayName,
-            email: userCreds.user!.email,
-            userId: userCreds.user!.uid);
 
-        FirebaseFirestore.instance
+      if (userCreds.user != null) {
+        await FirebaseFirestore.instance
             .collection('users')
             .doc(userCreds.user!.uid)
             .get()
             .then((DocumentSnapshot documentSnapshot) {
           if (documentSnapshot.exists) {
+            _usermodel = UsersModel(
+                displayName: userCreds.user!.displayName,
+                email: userCreds.user!.email,
+                userId: userCreds.user!.uid);
             return false;
           } else {
-            addNewUser(userCreds.user!.uid, userCreds.user!.displayName,
-                userCreds.user!.email);
+            return false;
           }
         });
       }
@@ -95,7 +95,7 @@ class Service {
     try {
       UserCredential userCreds = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-      if (userCreds != null) {
+      if (userCreds.user != null) {
         FirebaseFirestore.instance
             .collection('users')
             .doc(userCreds.user!.uid)
@@ -104,10 +104,13 @@ class Service {
           if (documentSnapshot.exists) {
             return false;
           } else {
-            addNewUser(userCreds.user!.uid, userCreds.user!.displayName,
-                userCreds.user!.email);
-            sendMoney('001', 'New User Funds', userCreds.user!.displayName,
-                userCreds.user!.uid, 'USD', 'USD', 0.00, 1000, 0.00);
+            addNewUser(userCreds.user!.uid, name, userCreds.user!.email)
+                .then((value) {
+              sendMoney("001", 'New User Funds', name, userCreds.user!.uid,
+                  "USD", "USD", 1000, 1000, 0.00);
+              userCreds.user!.updateDisplayName(name);
+            });
+
             return true;
           }
         });
@@ -133,9 +136,9 @@ class Service {
         .set({
           'UserName': displayname,
           'Email': email,
-          'USD': 0.00,
-          'NGN': 0.00,
-          'EUR': 0.00,
+          'USD': 0,
+          'NGN': 0,
+          'EUR': 0,
           'Id': userid
         })
         .then((value) => print('user added'))
@@ -143,7 +146,7 @@ class Service {
   }
 
   Future<bool> sendMoney(
-    String senderUid,
+    String? senderUid,
     sendername,
     receivername,
     receiverUid,
@@ -153,27 +156,46 @@ class Service {
     amount,
     charge,
   ) async {
-    double? source, reciverSource, myGain;
-    await FirebaseFirestore.instance
-        .collection('users')
+    double? myGain, source, reciverSource, balance;
+
+    CollectionReference newUser =
+        FirebaseFirestore.instance.collection('users');
+
+    await newUser
         .doc(senderUid)
         .get()
         .then((DocumentSnapshot documentSnapshot) {
-      source = documentSnapshot.get([souceCurrency]);
+      if (documentSnapshot.exists) {
+        if (documentSnapshot.get(souceCurrency) is int) {
+          source = documentSnapshot.get(souceCurrency).roundToDouble();
+        } else {
+          source = documentSnapshot.get(souceCurrency);
+        }
+      } else {
+        return false;
+      }
     });
     await FirebaseFirestore.instance
         .collection('users')
         .doc(receiverUid)
         .get()
         .then((DocumentSnapshot documentSnapshot) {
-      reciverSource = documentSnapshot.get([souceCurrency]);
+      if (documentSnapshot.exists) {
+        if (documentSnapshot.get(targetCurrency) is int) {
+          reciverSource = documentSnapshot.get(targetCurrency).roundToDouble();
+        } else {
+          reciverSource = documentSnapshot.get(targetCurrency);
+        }
+      } else {
+        return false;
+      }
     });
 
-    double balance = source!;
-    if (balance < amount) {
+    balance = source;
+    if (balance! <= amount) {
       return false;
     } else {
-      balance = -amount;
+      balance = balance - amount.roundToDouble();
 
       await FirebaseFirestore.instance
           .collection('users')
@@ -190,8 +212,6 @@ class Service {
         FirebaseFirestore.instance.collection('users').doc(receiverUid).update({
           '$targetCurrency': reciverSource! + exchanchangerate,
         });
-      }).catchError((onError) {
-        print(onError);
       });
 
       await FirebaseFirestore.instance
@@ -199,8 +219,15 @@ class Service {
           .doc('moneyGotten')
           .get()
           .then((DocumentSnapshot documentSnapshot) {
-        myGain = documentSnapshot.get([souceCurrency]);
+        if (documentSnapshot.exists) {
+          if (documentSnapshot.get(souceCurrency) is int) {
+            myGain = documentSnapshot.get(souceCurrency).roundToDouble();
+          } else {
+            myGain = documentSnapshot.get(souceCurrency);
+          }
+        }
       });
+
       await FirebaseFirestore.instance
           .collection('admin')
           .doc('moneyGotten')
@@ -221,8 +248,6 @@ class Service {
         FirebaseFirestore.instance.collection('users').doc(senderUid).update({
           '$souceCurrency': balance,
         });
-      }).catchError((onError) {
-        print(onError);
       });
     }
 
@@ -230,7 +255,12 @@ class Service {
   }
 
   Future<void> signOut() async {
-    await GoogleSignIn().signOut();
+    if (googleUserLog) {
+      await FirebaseAuth.instance.signOut();
+    } else {
+      await GoogleSignIn().signOut();
+    }
+
     _usermodel = null;
   }
 

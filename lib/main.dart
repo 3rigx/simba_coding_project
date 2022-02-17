@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:simba_coding_project/Screens/convert/convert_screen.dart';
 import 'package:simba_coding_project/Screens/convert/send_to/sendto_page.dart';
 import 'package:simba_coding_project/Screens/login/auth.dart';
 import 'package:simba_coding_project/Screens/login/splashPage.dart';
@@ -21,9 +22,6 @@ void main() {
       ],
       child: MaterialApp(
         navigatorKey: Utils.mainAppNav,
-        theme: ThemeData(
-          fontFamily: '',
-        ),
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         routes: {
@@ -35,6 +33,7 @@ void main() {
           '/mainpage': (context) => MainPage(),
           '/login': (context) => AuthPage(),
           '/sendTo': (context) => SendToPage(),
+          '/convet': (context) => ConvertScreen(),
         },
       )));
 }

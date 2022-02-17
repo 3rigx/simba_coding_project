@@ -41,12 +41,12 @@ class _MainPageState extends State<MainPage> {
         items: [
           BottomNavigationBarItem(
             // ignore: deprecated_member_use
-            title: Text('Home'),
+            label: 'Home',
             icon: Icon(Icons.menu_open),
           ),
           BottomNavigationBarItem(
             // ignore: deprecated_member_use
-            title: Text('Convert'),
+            label: 'Convert',
             icon: Icon(
               Icons.money,
             ),

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:simba_coding_project/misc/app_colors.dart';
 import 'package:simba_coding_project/widget/app_text.dart';
@@ -37,7 +36,6 @@ class ResponsiveButton extends StatelessWidget {
                     ),
                   )
                 : Container(),
-            Image.asset('img/button.png'),
           ],
         ),
       ),

@@ -20,11 +20,12 @@ Future<Map> fetchcurencies() async {
   return allCurrencies;
 }
 
-double convertany(
+String convertany(
     Map exchangeRates, String amount, String curencybase, currencyFinal) {
-  double output = double.parse(amount) /
-      exchangeRates[curencybase] *
-      exchangeRates[currencyFinal];
+  String output = ((double.parse(amount) / exchangeRates[curencybase]) *
+          exchangeRates[currencyFinal])
+      .toStringAsFixed(2)
+      .toString();
 
   return output;
 }

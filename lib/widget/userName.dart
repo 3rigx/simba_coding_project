@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:simba_coding_project/models/users_model.dart';
 import 'package:simba_coding_project/services/services.dart';
-import 'package:simba_coding_project/widget/app_large_text.dart';
 import 'package:provider/provider.dart';
+import 'package:simba_coding_project/widget/app_text.dart';
 
 class UserName extends StatelessWidget {
   const UserName({Key? key}) : super(key: key);
@@ -13,8 +13,10 @@ class UserName extends StatelessWidget {
       UsersModel? _usermodel = service.loggedInUser;
 
       String? name = _usermodel != null ? _usermodel.displayName : 'User';
-      return AppLargeText(
+      return AppText(
         text: name,
+        color: Colors.grey,
+        size: 20,
       );
     });
   }

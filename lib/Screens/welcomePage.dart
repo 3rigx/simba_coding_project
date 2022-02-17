@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:simba_coding_project/misc/app_colors.dart';
 import 'package:simba_coding_project/misc/utils.dart';
 import 'package:simba_coding_project/services/services.dart';
@@ -14,33 +15,38 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  Service? _service;
   @override
   Widget build(BuildContext context) {
+    Service _service = Provider.of<Service>(context, listen: false);
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.mainColor,
-        elevation: 0.0,
-      ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        child: ListView(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            ListTile(
-              title: AppLargeText(
+            Container(
+              padding: const EdgeInsets.only(
+                top: 100,
+              ),
+              child: AppLargeText(
                 text: 'Welcome',
                 color: AppColors.bigTextColor,
               ),
             ),
             Container(
-                height: 250,
-                child: AppText(
-                  text: 'Simba Project',
-                )),
+              margin: const EdgeInsets.only(
+                top: 40,
+              ),
+              height: 400,
+              child: AppLargeText(
+                text: 'Simba Project by Greendly',
+                color: Colors.grey.withOpacity(.5),
+              ),
+            ),
             InkWell(
               onTap: () async {
-                bool succes = await _service!.signInWithGoogle();
+                bool succes = await _service.signInWithGoogle();
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -64,23 +70,19 @@ class _WelcomePageState extends State<WelcomePage> {
             SizedBox(
               height: 20,
             ),
-            ListTile(
-              title: AppText(
-                text: 'or Register',
-              ),
-              subtitle: Row(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      Utils.mainAppNav.currentState!.pushNamed('/login');
-                    },
-                    child: ResponsiveButton(
-                      isResponsive: true,
-                      text: '>>>>>>',
-                      width: double.infinity,
-                    ),
-                  ),
-                ],
+            AppText(
+              text: 'or Register',
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            InkWell(
+              onTap: () {
+                Utils.mainAppNav.currentState!.pushNamed('/login');
+              },
+              child: ResponsiveButton(
+                isResponsive: true,
+                text: 'Register / Login',
               ),
             ),
           ],
